@@ -26,8 +26,9 @@ for filename in os.listdir(path_of_the_directory):
                 #print(row)
                 #print(type(row)) TYPE String
                 if row != "img_url":
-                    res = requests.get(row).content
                     if counter<10:
+                        res = requests.get(row).content
+                    
                         of_p  = "/Users/sadeedahmad/Desktop/psa-scrape/image_collection/imgs/img_" + str(counter) + ".jpg"
                         
                         with open(of_p, "wb") as of:
