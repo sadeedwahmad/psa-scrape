@@ -37,24 +37,27 @@ class PsaAuctionPrices:
         }
 
         json_data = self.post_to_url(sess, form_data)
-        sales = json_data["data"]
+        if json_data == "" or json_data == None:
+            sales = None
+        else:
+            sales = json_data["data"]
 
         # If there's more than PAGE_MAX sales results, keep calling the SCRAPE_URL until we have all of the sales
         # records
-        total_sales = json_data["recordsTotal"]
-        if total_sales > PAGE_MAX:
-            additional_pages = math.ceil((total_sales - PAGE_MAX) / PAGE_MAX)
-            for i in range(additional_pages):
-                curr_page = i + 1
-                form_data = {
-                    "specID": str(card_id),
-                    "draw": curr_page + 2,
-                    "start": PAGE_MAX * curr_page,
-                    "length": PAGE_MAX
-                }
+            total_sales = json_data["recordsTotal"]
+            if total_sales > PAGE_MAX:
+                additional_pages = math.ceil((total_sales - PAGE_MAX) / PAGE_MAX)
+                for i in range(additional_pages):
+                    curr_page = i + 1
+                    form_data = {
+                        "specID": str(card_id),
+                        "draw": curr_page + 2,
+                        "start": PAGE_MAX * curr_page,
+                        "length": PAGE_MAX
+                    }
 
-                json_data = self.post_to_url(sess, form_data)
-                sales += json_data["data"]
+                    json_data = self.post_to_url(sess, form_data)
+                    sales += json_data["data"]
 
         images = []
         a_urls = []
@@ -69,41 +72,45 @@ class PsaAuctionPrices:
         certs = []
 
         # Iterate over each sale, pull data elements from each sale
-        for sale in sales:
+        if sales == None or sales == "" or type(sales) == None:
+            print("Sales None")
+        else:
+            for sale in sales:
             # Get image url
-            images.append(self.get_image_url(sale))
+                images.append(self.get_image_url(sale))
 
             # Get auction url
-            a_urls.append(self.get_auction_url(sale))
+                a_urls.append(self.get_auction_url(sale))
 
             # Get sales price
-            prices.append(self.get_price(sale))
+                prices.append(self.get_price(sale))
 
             # Get sale date
-            dates.append(self.get_sale_date(sale))
+                dates.append(self.get_sale_date(sale))
 
             # Get grade
-            grades.append(self.get_grade(sale))
+                grades.append(self.get_grade(sale))
 
             # Get qualifer
-            quals.append(self.get_qualifier(sale))
+                quals.append(self.get_qualifier(sale))
 
             # Get lot number
-            lots.append(self.get_lot_number(sale))
+                lots.append(self.get_lot_number(sale))
 
             # Get auction house
-            a_houses.append(self.get_auction_house(sale))
+                a_houses.append(self.get_auction_house(sale))
 
             # Get seller
-            sellers.append(self.get_seller_name(sale))
+                sellers.append(self.get_seller_name(sale))
 
             # Get sale type (auction, BIN, Best Offer, etc)
-            sale_types.append(self.get_sale_type(sale))
+                sale_types.append(self.get_sale_type(sale))
 
             # Get PSA certification number
-            certs.append(self.get_psa_cert(sale))
+                certs.append(self.get_psa_cert(sale))
         
         # Create a dataframe
+        """
         df = pd.DataFrame({
             "date": dates, 
             "grade": grades, 
@@ -117,16 +124,26 @@ class PsaAuctionPrices:
             "auction_url": a_urls,
             "img_url": images
         })
-        
+        """ 
+
+        df = pd.DataFrame({
+
+            "img_url": images
+        })
         # Write to csv
-        df.to_csv(self.get_file_name(), index = False)
+        if df.empty == False:
+            df.to_csv(self.get_file_name(), index = False)
 
     def post_to_url(self, session, form_data):
         r = session.post(SCRAPE_URL, data=form_data)
         r.raise_for_status()
-        json_data = r.json()
-        time.sleep(3)
-        return json_data
+        try:
+            json_data = r.json()
+            time.sleep(3)
+            return json_data
+        except:
+            print("Exception")
+            return ""
 
     def get_image_url(self, sale):
         if "ImageURL" in sale:
@@ -208,12 +225,21 @@ if __name__ == '__main__':
         if not input_url or not isinstance(input_url, str):
             raise ValueError("input must be a url string with base 'https://www.psacard.com/auctionprices/'")
     except IndexError:
+        """
         # If no input url provided, read in urls from urls.txt
         if not os.path.exists("urls.txt"):
             raise ValueError("no input url passed and 'urls.txt' not found")
         with open("urls.txt") as f:
             urls = [n for n in f.read().split("\n") if n]
+        """
 
+        # If no input url provided, read in urls from urls.txt
+        pathval = "E:/psa-scrape/prepare_setUrls_forAuctionScrape/auctionUrls.txt"
+
+        if not os.path.exists(pathval):
+            raise ValueError("no input url passed and 'auctionUrls.txt' not found")
+        with open(pathval) as f:
+            urls = [n for n in f.read().split("\n") if n]
     # If psa-scrape/data doesn't exist, create it
     if not os.path.exists("data"):
         os.makedirs("data")
@@ -223,3 +249,5 @@ if __name__ == '__main__':
         # Initialize class and execute web scraping
         pap = PsaAuctionPrices(url)
         pap.scrape()
+
+print("completed")
