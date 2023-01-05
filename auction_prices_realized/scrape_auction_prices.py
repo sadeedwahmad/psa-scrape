@@ -234,8 +234,8 @@ if __name__ == '__main__':
         """
 
         # If no input url provided, read in urls from urls.txt
-        pathval = "E:/psa-scrape/prepare_setUrls_forAuctionScrape/auctionUrls.txt"
-
+        #pathval = "E:/psa-scrape/prepare_setUrls_forAuctionScrape/auctionUrls.txt"
+        pathval    = "/Users/sadeedahmad/Desktop/psa-scrape/prepare_setUrls_forAuctionScrape/auctionUrls.txt"
         if not os.path.exists(pathval):
             raise ValueError("no input url passed and 'auctionUrls.txt' not found")
         with open(pathval) as f:

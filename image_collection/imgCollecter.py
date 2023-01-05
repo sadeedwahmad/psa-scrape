@@ -3,7 +3,13 @@ import os
 import requests
 
 
-path_of_the_directory= 'E:/psa-scrape/auction_prices_realized/data'
+import urllib.request
+
+from PIL import Image
+
+
+
+path_of_the_directory= "/Users/sadeedahmad/Desktop/psa-scrape/data"
 
 for filename in os.listdir(path_of_the_directory):
     f = os.path.join(path_of_the_directory,filename)
@@ -11,6 +17,22 @@ for filename in os.listdir(path_of_the_directory):
         print(":::::::::::::::::" + str(f) + ":::::::::::::::::")
         with open(f, 'r') as file:
             csvreader = csv.reader(file)
+            counter =0
             for row in csvreader:
-                print(row)
-                response = requests.get(row)
+                #print(row)
+                #print(type(row))
+                #print(row[0])
+                row = row[0]
+                #print(row)
+                #print(type(row)) TYPE String
+                if row != "img_url":
+                    res = requests.get(row).content
+                    if counter<10:
+                        of_p  = "/Users/sadeedahmad/Desktop/psa-scrape/image_collection/imgs/img_" + str(counter) + ".jpg"
+                        
+                        with open(of_p, "wb") as of:
+                            of.write(res)
+                            counter +=1
+                
+print("Image collector done")
+                
